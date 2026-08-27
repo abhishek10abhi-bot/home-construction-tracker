@@ -1,4 +1,4 @@
-name: Build Home Construction Tracker APK
+name: Build Home Construction Tracker V2
 
 on:
   workflow_dispatch:
@@ -21,10 +21,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
+      - name: Set up Android
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK 35
+      - name: Install Android SDK
         run: |
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
@@ -33,242 +33,17 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Create Android project
+      - name: Extract V2 project
         run: |
-
-          mkdir -p app/src/main/java/com/example/homeconstructiontracker
-          mkdir -p app/src/main/assets
-          mkdir -p app/src/main/res/values
-
-          cp index.html app/src/main/assets/index.html
-
-          cat > settings.gradle <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
-
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-
-          rootProject.name = "HomeConstructionTracker"
-
-          include(":app")
-          EOF
-
-          cat > build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application' version '8.6.1' apply false
-          }
-          EOF
-
-          cat > app/build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application'
-          }
-
-          android {
-
-              namespace 'com.example.homeconstructiontracker'
-
-              compileSdk 35
-
-              defaultConfig {
-
-                  applicationId "com.example.homeconstructiontracker"
-
-                  minSdk 23
-
-                  targetSdk 35
-
-                  versionCode 1
-
-                  versionName "1.0"
-              }
-          }
-          EOF
-
-          cat > app/src/main/res/values/styles.xml <<'EOF'
-          <resources>
-
-              <style name="AppTheme"
-                  parent="@android:style/Theme.Material.Light.NoActionBar">
-
-                  <item name="android:fontFamily">sans</item>
-
-                  <item name="android:colorAccent">#2563EB</item>
-
-                  <item name="android:statusBarColor">#111827</item>
-
-                  <item name="android:navigationBarColor">#F4F6FA</item>
-
-              </style>
-
-          </resources>
-          EOF
-
-          cat > app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-              <application
-                  android:theme="@style/AppTheme"
-                  android:label="Home Construction Tracker"
-                  android:allowBackup="true"
-                  android:supportsRtl="true">
-
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
-
-                      <intent-filter>
-
-                          <action
-                              android:name="android.intent.action.MAIN" />
-
-                          <category
-                              android:name="android.intent.category.LAUNCHER" />
-
-                      </intent-filter>
-
-                  </activity>
-
-              </application>
-
-          </manifest>
-          EOF
-
-          cat > app/src/main/java/com/example/homeconstructiontracker/MainActivity.java <<'EOF'
-          package com.example.homeconstructiontracker;
-
-          import android.app.Activity;
-          import android.content.Intent;
-          import android.net.Uri;
-          import android.os.Bundle;
-          import android.webkit.ValueCallback;
-          import android.webkit.WebChromeClient;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
-
-          public class MainActivity extends Activity {
-
-              private ValueCallback<Uri[]> fileCallback;
-
-              private static final int FILE_REQUEST = 1001;
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
-
-                  super.onCreate(savedInstanceState);
-
-                  WebView webView = new WebView(this);
-
-                  webView.getSettings().setJavaScriptEnabled(true);
-
-                  webView.getSettings().setDomStorageEnabled(true);
-
-                  webView.getSettings().setAllowFileAccess(true);
-
-                  webView.getSettings().setAllowContentAccess(true);
-
-                  webView.setWebViewClient(
-                      new WebViewClient()
-                  );
-
-                  webView.setWebChromeClient(
-                      new WebChromeClient() {
-
-                          @Override
-                          public boolean onShowFileChooser(
-                              WebView webView,
-                              ValueCallback<Uri[]> callback,
-                              FileChooserParams params) {
-
-                              fileCallback = callback;
-
-                              try {
-
-                                  Intent intent =
-                                      params.createIntent();
-
-                                  startActivityForResult(
-                                      intent,
-                                      FILE_REQUEST
-                                  );
-
-                              } catch (Exception e) {
-
-                                  fileCallback = null;
-
-                                  return false;
-                              }
-
-                              return true;
-                          }
-                      }
-                  );
-
-                  webView.loadUrl(
-                      "file:///android_asset/index.html"
-                  );
-
-                  setContentView(webView);
-              }
-
-              @Override
-              protected void onActivityResult(
-                  int requestCode,
-                  int resultCode,
-                  Intent data) {
-
-                  super.onActivityResult(
-                      requestCode,
-                      resultCode,
-                      data
-                  );
-
-                  if (requestCode == FILE_REQUEST) {
-
-                      Uri[] results = null;
-
-                      if (
-                          resultCode == RESULT_OK &&
-                          data != null &&
-                          data.getData() != null
-                      ) {
-
-                          results = new Uri[] {
-                              data.getData()
-                          };
-                      }
-
-                      if (fileCallback != null) {
-
-                          fileCallback.onReceiveValue(
-                              results
-                          );
-
-                          fileCallback = null;
-                      }
-                  }
-              }
-          }
-          EOF
+          unzip -q Home_Construction_Tracker_V2_Native_Android_Project.zip -d extracted
 
       - name: Build APK
+        working-directory: extracted/HomeConstructionTrackerV2
         run: |
           gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Home-Construction-Tracker-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Home-Construction-Tracker-V2-APK
+          path: extracted/HomeConstructionTrackerV2/app/build/outputs/apk/debug/app-debug.apk

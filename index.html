@@ -1,1 +1,649 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Construction Tracker</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f4f6fa;
+  color: #172033;
+}
+
+.header {
+  background: #111827;
+  color: white;
+  padding: 22px 18px;
+}
+
+.header small {
+  opacity: .7;
+}
+
+.header h1 {
+  margin: 5px 0 0;
+  font-size: 23px;
+}
+
+.container {
+  padding: 16px;
+  max-width: 550px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+
+.label {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.full {
+  grid-column: span 2;
+}
+
+.green {
+  color: #15803d;
+}
+
+.orange {
+  color: #c2410c;
+}
+
+.section {
+  font-weight: bold;
+  font-size: 17px;
+  margin: 20px 0 10px;
+}
+
+.people {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+}
+
+.person {
+  text-align: center;
+}
+
+.person-name {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.person-amount {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.add-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  position: fixed;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 520px;
+  width: calc(100% - 30px);
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  margin-bottom: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: bold;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 18px;
+  padding: 18px;
+  max-width: 520px;
+  margin: 30px auto;
+}
+
+.save {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.cancel {
+  width: 100%;
+  background: #e5e7eb;
+}
+
+.payment {
+  padding: 13px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payment:last-child {
+  border-bottom: none;
+}
+
+.payment-top {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.payment-info {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.receipt {
+  color: #2563eb;
+  font-size: 12px;
+  margin-top: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <small>HOME CONSTRUCTION</small>
+  <h1>Payment Tracker</h1>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="label">Builder / Contractor</div>
+    <div class="value" id="builderName">ABC Builder</div>
+  </div>
+
+  <div class="cards">
+
+    <div class="card">
+      <div class="label">Contract Value</div>
+      <div class="value" id="contractValue">₹50,00,000</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Total Paid</div>
+      <div class="value green" id="totalPaid">₹0</div>
+    </div>
+
+    <div class="card full">
+      <div class="label">Balance Payable</div>
+      <div class="value orange" id="balance">₹50,00,000</div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    Contribution by Family Member
+  </div>
+
+  <div class="people">
+
+    <div class="card person">
+      <div class="person-name">ME</div>
+      <div class="person-amount" id="me">₹0</div>
+    </div>
+
+    <div class="card person">
+      <div class="person-name">FATHER</div>
+      <div class="person-amount" id="father">₹0</div>
+    </div>
+
+    <div class="card person">
+      <div class="person-name">BROTHER</div>
+      <div class="person-amount" id="brother">₹0</div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    Payment History
+  </div>
+
+  <div class="card" id="payments">
+    No payments yet.
+  </div>
+
+  <div class="section">
+    Builder Settings
+  </div>
+
+  <div class="card">
+
+    <label>Builder / Contractor</label>
+    <input id="builderInput" value="ABC Builder">
+
+    <label>Contract Value (₹)</label>
+    <input id="contractInput" type="number" value="5000000">
+
+    <button onclick="saveSettings()" class="save">
+      Save Builder Details
+    </button>
+
+  </div>
+
+</div>
+
+<button class="add-btn" onclick="openModal()">
+  ＋ Add Payment
+</button>
+
+
+<!-- ADD PAYMENT SCREEN -->
+
+<div class="modal" id="modal">
+
+  <div class="modal-box">
+
+    <h2>Add Payment</h2>
+
+    <label>Date</label>
+    <input id="date" type="date">
+
+    <label>Amount (₹)</label>
+    <input id="amount" type="number" placeholder="Enter amount">
+
+    <label>Paid By</label>
+    <select id="payer">
+      <option>Me</option>
+      <option>Father</option>
+      <option>Brother</option>
+    </select>
+
+    <label>Payment Mode</label>
+    <select id="mode">
+      <option>UPI</option>
+      <option>Bank Transfer</option>
+      <option>Cash</option>
+      <option>Cheque</option>
+      <option>NEFT</option>
+      <option>RTGS</option>
+    </select>
+
+    <label>UTR / Cheque Number</label>
+    <input id="utr" placeholder="Optional">
+
+    <label>Work / Stage</label>
+    <input id="stage" placeholder="RCC / Tiles / Plumbing / Advance">
+
+    <label>Upload Receipt / Payment Proof</label>
+    <input
+      id="receipt"
+      type="file"
+      accept="image/*,.pdf"
+    >
+
+    <label>Remarks</label>
+    <textarea id="remarks" placeholder="Optional"></textarea>
+
+    <button class="save" onclick="addPayment()">
+      Save Payment
+    </button>
+
+    <button class="cancel" onclick="closeModal()">
+      Cancel
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+let data = JSON.parse(
+  localStorage.getItem("constructionData")
+) || {
+
+  builder: "ABC Builder",
+
+  contract: 5000000,
+
+  payments: []
+
+};
+
+
+function money(value) {
+
+  return "₹" + Number(value || 0)
+    .toLocaleString("en-IN");
+
+}
+
+
+function saveData() {
+
+  localStorage.setItem(
+    "constructionData",
+    JSON.stringify(data)
+  );
+
+}
+
+
+function render() {
+
+  document.getElementById("builderName")
+    .innerText = data.builder;
+
+  document.getElementById("contractValue")
+    .innerText = money(data.contract);
+
+  let total = data.payments.reduce(
+    (sum,p) => sum + Number(p.amount),
+    0
+  );
+
+  document.getElementById("totalPaid")
+    .innerText = money(total);
+
+  document.getElementById("balance")
+    .innerText = money(
+      Math.max(0,data.contract-total)
+    );
+
+
+  ["Me","Father","Brother"].forEach(person => {
+
+    let totalPerson = data.payments
+
+      .filter(p => p.payer === person)
+
+      .reduce(
+        (sum,p) => sum + Number(p.amount),
+        0
+      );
+
+    document.getElementById(
+      person.toLowerCase()
+    ).innerText = money(totalPerson);
+
+  });
+
+
+  let box =
+    document.getElementById("payments");
+
+
+  if(data.payments.length === 0) {
+
+    box.innerHTML =
+      "No payments yet.";
+
+    return;
+
+  }
+
+
+  box.innerHTML = data.payments
+    .slice()
+    .reverse()
+    .map(p => `
+
+      <div class="payment">
+
+        <div class="payment-top">
+
+          <span>
+            ${p.payer} → ${data.builder}
+          </span>
+
+          <span>
+            ${money(p.amount)}
+          </span>
+
+        </div>
+
+        <div class="payment-info">
+
+          ${p.date}
+          · ${p.mode}
+          · ${p.stage || "Construction"}
+
+        </div>
+
+        ${
+          p.utr
+          ?
+          `<div class="payment-info">
+            UTR/Cheque: ${p.utr}
+          </div>`
+          :
+          ""
+        }
+
+        ${
+          p.receipt
+          ?
+          `<div class="receipt">
+            📎 Receipt attached
+          </div>`
+          :
+          ""
+        }
+
+      </div>
+
+    `).join("");
+
+}
+
+
+function openModal() {
+
+  document.getElementById("modal")
+    .style.display = "block";
+
+  document.getElementById("date")
+    .value =
+    new Date()
+      .toISOString()
+      .substring(0,10);
+
+}
+
+
+function closeModal() {
+
+  document.getElementById("modal")
+    .style.display = "none";
+
+}
+
+
+function addPayment() {
+
+  let amount =
+    Number(
+      document.getElementById("amount").value
+    );
+
+
+  if(!amount) {
+
+    alert("Please enter the payment amount.");
+
+    return;
+
+  }
+
+
+  let file =
+    document.getElementById("receipt").files[0];
+
+
+  if(file) {
+
+    let reader =
+      new FileReader();
+
+
+    reader.onload = function(e) {
+
+      savePayment(
+        e.target.result,
+        file.name
+      );
+
+    };
+
+
+    reader.readAsDataURL(file);
+
+  } else {
+
+    savePayment("", "");
+
+  }
+
+}
+
+
+function savePayment(receiptData,receiptName) {
+
+  data.payments.push({
+
+    date:
+      document.getElementById("date").value,
+
+    amount:
+      Number(
+        document.getElementById("amount").value
+      ),
+
+    payer:
+      document.getElementById("payer").value,
+
+    mode:
+      document.getElementById("mode").value,
+
+    utr:
+      document.getElementById("utr").value,
+
+    stage:
+      document.getElementById("stage").value,
+
+    receipt:
+      receiptData,
+
+    receiptName:
+      receiptName,
+
+    remarks:
+      document.getElementById("remarks").value
+
+  });
+
+
+  saveData();
+
+  render();
+
+  closeModal();
+
+
+  document.getElementById("amount").value = "";
+
+  document.getElementById("utr").value = "";
+
+  document.getElementById("stage").value = "";
+
+  document.getElementById("remarks").value = "";
+
+  document.getElementById("receipt").value = "";
+
+}
+
+
+function saveSettings() {
+
+  data.builder =
+    document.getElementById("builderInput").value;
+
+  data.contract =
+    Number(
+      document.getElementById("contractInput").value
+    );
+
+
+  saveData();
+
+  render();
+
+  alert("Builder details saved.");
+
+}
+
+
+document.getElementById("builderInput")
+  .value = data.builder;
+
+document.getElementById("contractInput")
+  .value = data.contract;
+
+
+render();
+
+</script>
+
+</body>
+</html>
